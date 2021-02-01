@@ -6,6 +6,8 @@ import java.util.Date;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.MultipartBodyBuilder;
+import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -83,6 +85,18 @@ public class ProductoHandler {
 		return service.delete(id)
 				.then(ServerResponse.noContent().build());
 		
+	}
+	
+	public Mono<ServerResponse> upload(ServerRequest request){
+		String id = request.pathVariable("id");
+		
+		return request.multipartData().map(multipart -> multipart.toSingleValueMap().get("file"))
+				.cast(FilePart.class)
+				.flatMap(file -> service.upload(file, id))
+				.flatMap(p -> ServerResponse.created(URI.create("/api/client/".concat(p.getId())))
+				.contentType(MediaType.APPLICATION_JSON)
+				.syncBody(p));
+				
 	}
 
 }
