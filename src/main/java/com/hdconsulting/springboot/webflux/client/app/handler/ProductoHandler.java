@@ -6,7 +6,6 @@ import java.util.Date;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.BodyInserters;
@@ -63,7 +62,8 @@ public class ProductoHandler {
 					if (errorResponse.getStatusCode() == HttpStatus.BAD_REQUEST) {
 						return ServerResponse.badRequest()
 								.contentType(MediaType.APPLICATION_JSON)
-								.syncBody(errorResponse.getResponseBodyAsString());
+								//.syncBody(errorResponse.getResponseBodyAsString())
+								.body(BodyInserters.fromValue(errorResponse.getResponseBodyAsString()));
 					}
 					return Mono.error(errorResponse);
 				});
@@ -95,7 +95,8 @@ public class ProductoHandler {
 				.flatMap(file -> service.upload(file, id))
 				.flatMap(p -> ServerResponse.created(URI.create("/api/client/".concat(p.getId())))
 				.contentType(MediaType.APPLICATION_JSON)
-				.syncBody(p));
+				//.syncBody(p))
+				.body(BodyInserters.fromValue(p)));
 				
 	}
 

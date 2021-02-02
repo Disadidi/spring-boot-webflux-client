@@ -72,8 +72,8 @@ public class ProductoServiceImpl implements ProductoService {
 		return client.delete()
 				.uri("/{id}", Collections.singletonMap("id", id))
 				.accept(MediaType.APPLICATION_JSON)
-				.exchange()
-				.then();
+				.retrieve()
+				.bodyToMono(Void.class);
 	}
 
 	@Override
@@ -87,7 +87,8 @@ public class ProductoServiceImpl implements ProductoService {
 		return client.post()
 				.uri("/upload/{id}", Collections.singletonMap("id", id))
 				.contentType(MediaType.MULTIPART_FORM_DATA)
-				.syncBody(parts.build())
+				//.syncBody(parts.build())
+				.body(BodyInserters.fromValue(parts.build()))
 				.retrieve()
 				.bodyToMono(Producto.class);
 		
