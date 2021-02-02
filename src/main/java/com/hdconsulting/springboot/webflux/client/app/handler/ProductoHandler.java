@@ -38,7 +38,15 @@ public class ProductoHandler {
 				.flatMap(p -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON)
 				//.syncBody(p))
 						.body(BodyInserters.fromValue(p)))
-				.switchIfEmpty(ServerResponse.notFound().build());
+				.switchIfEmpty(ServerResponse.notFound().build())
+				.onErrorResume(error -> {
+					WebClientResponseException errorResponse = (WebClientResponseException) error;
+					
+					if (errorResponse.getStatusCode() == HttpStatus.NOT_FOUND) {
+						return ServerResponse.notFound().build();
+					}
+					return Mono.error(errorResponse);
+				});
 
 	}
 
@@ -74,16 +82,35 @@ public class ProductoHandler {
 		Mono<Producto> producto = request.bodyToMono(Producto.class);
 		String id = request.pathVariable("id");
 		
-		return producto.flatMap(p -> ServerResponse.created(URI.create("/api/client/".concat(id)))
+		return producto
+				.flatMap(p -> service.update(p, id))
+				.flatMap(p -> ServerResponse.created(URI.create("/api/client/".concat(id)))
 				.contentType(MediaType.APPLICATION_JSON)
-				.body(service.update(p, id), Producto.class));
+				//.body(p)
+				.body(BodyInserters.fromValue(p)))
+				.onErrorResume(error -> {
+					WebClientResponseException errorResponse = (WebClientResponseException) error;
+					
+					if (errorResponse.getStatusCode() == HttpStatus.NOT_FOUND) {
+						return ServerResponse.notFound().build();
+					}
+					return Mono.error(errorResponse);
+				});
 	}
 	
 	public Mono<ServerResponse> eliminar(ServerRequest request) {
 		String id = request.pathVariable("id");
 		
 		return service.delete(id)
-				.then(ServerResponse.noContent().build());
+				.then(ServerResponse.noContent().build())
+				.onErrorResume(error -> {
+					WebClientResponseException errorResponse = (WebClientResponseException) error;
+					
+					if (errorResponse.getStatusCode() == HttpStatus.NOT_FOUND) {
+						return ServerResponse.notFound().build();
+					}
+					return Mono.error(errorResponse);
+				});
 		
 	}
 	
@@ -96,7 +123,15 @@ public class ProductoHandler {
 				.flatMap(p -> ServerResponse.created(URI.create("/api/client/".concat(p.getId())))
 				.contentType(MediaType.APPLICATION_JSON)
 				//.syncBody(p))
-				.body(BodyInserters.fromValue(p)));
+				.body(BodyInserters.fromValue(p)))
+				.onErrorResume(error -> {
+					WebClientResponseException errorResponse = (WebClientResponseException) error;
+					
+					if (errorResponse.getStatusCode() == HttpStatus.NOT_FOUND) {
+						return ServerResponse.notFound().build();
+					}
+					return Mono.error(errorResponse);
+				});
 				
 	}
 
