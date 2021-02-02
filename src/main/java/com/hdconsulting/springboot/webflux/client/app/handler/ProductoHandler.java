@@ -2,6 +2,8 @@ package com.hdconsulting.springboot.webflux.client.app.handler;
 
 import java.net.URI;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -43,7 +45,11 @@ public class ProductoHandler {
 					WebClientResponseException errorResponse = (WebClientResponseException) error;
 					
 					if (errorResponse.getStatusCode() == HttpStatus.NOT_FOUND) {
-						return ServerResponse.notFound().build();
+						Map<String, Object> body = new HashMap<>();
+						body.put("error", "No existe el producto: ".concat(errorResponse.getMessage()));
+						body.put("timestamp", new Date());
+						body.put("status", errorResponse.getStatusCode().value());
+						return ServerResponse.status(HttpStatus.NOT_FOUND).body(BodyInserters.fromValue(body));
 					}
 					return Mono.error(errorResponse);
 				});
